@@ -32,7 +32,7 @@ Make sure to choose descriptive variable and function names.
 > [!NOTE]
 > If you do not have a ZID-GPL Linux account, please visit [https://www.uibk.ac.at/zid/systeme/linux/lpccs_4/u-antrag.html](https://www.uibk.ac.at/zid/systeme/linux/lpccs_4/u-antrag.html) to create one.
 
-All programming exercise solutions you hand in **must** compile properly on the [ZID-GPL server](https://www.uibk.ac.at/zid/systeme/linux/lpccs_4/benutzeranleitung_zid-gpl.html).
+All programming exercise solutions you hand in **must** compile properly on the [ZID-GPL server](https://www.uibk.ac.at/zid/systeme/linux/#remote-zid-gpl).
 The easiest way of ensuring this is by developing on ZID-GPL directly, either through a terminal or using an editor/IDE with support for remote development via SSH (such as [Visual Studio Code](https://code.visualstudio.com/docs/remote/ssh)).
 
 **Important**: Facing issues with your system is not a valid excuse for only partially completing exercise sheets or avoiding them entirely. If you encounter difficulties, use ZID-GPL.
