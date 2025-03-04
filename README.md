@@ -12,6 +12,7 @@ Note that exercises associated with a given date are to be discussed on that day
 | Date       | Exc              | Topic                                                 | Notes             |
 | ---------- | ---              | ----------------------------                          | --------------    |
 | 2025-03-05 | -                |                                                       | C recap slides    |
+| 2025-03-12 | [1](exercise01/) | Self-assessment, ssh, commandline                     |                   |
 
 ## Coding Guidelines
 
