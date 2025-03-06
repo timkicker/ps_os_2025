@@ -100,19 +100,27 @@ char get_neighbors (int** field, int width, int height, int h_cell, int w_cell){
 	return neighbors_top + neighbors_bottom + neighbors_side;
 }
 
-// print entire state of the field 
-void print_field(int** field, int width, int height){
+void file_gen (int** field, int width, int height, int step){
 
-	for (int h = 0; h < height; h++){
-		for (int w = 0; w < width; w++){
+	char filename[20];
+    snprintf(filename, sizeof(filename), "gol_%05d.pbm", step);
 
-			char state = field[h][w];
-			if (state)
-				printf('■'); // get state of field
-			else printf('□'); // get state of field
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Write PBM header
+    fprintf(file, "P1\n");
+    fprintf(file, "%d %d\n", width, height);
+
+
+	for (int i = 0; i < height; i++){
+		for (int j = 0; j < width; j++){
+			fprintf(file, "%d", field[i][j]);
 		}
-		printf("\n");	
-	}
 
-	return;
+	}
+	fclose(file);
 }
