@@ -6,36 +6,6 @@ void printUsage(const char* programName) {
     printf("usage: %s <width> <height> <density> <steps>\n", programName);
 }
 
-// game of life
-int main(int argc, char* argv[]) {
-    if(argc != 5) {
-        printUsage(argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    const int width = atoi(argv[1]);
-    const int height = atoi(argv[2]);
-    const double density = atof(argv[3]);
-    const int steps = atoi(argv[4]);
-
-    printf("width:   %4d\n", width);
-    printf("height:  %4d\n", height);
-    printf("density: %4.0f%%\n", density * 100);
-    printf("steps:   %4d\n", steps);
-
-
-    srand(time(NULL));
-
-    int **field = init_world(density, width, height);
-
-    for (int i = 0; i < steps; i++) {
-        run_generation_cycle(field, width, height);
-        print_field(field, width, height);
-    }
-
-    return EXIT_SUCCESS;
-}
-
 // init world and cells 
 int** init_world(double density, int width, int height) {
     int **field = (int **)calloc(height, sizeof(int *));
@@ -66,6 +36,75 @@ int** init_world(double density, int width, int height) {
     }
 
     return field;
+}
+
+void file_gen (int** field, int width, int height, int step){
+
+	char filename[20];
+    snprintf(filename, sizeof(filename), "gol_%05d.pbm", step);
+
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Write PBM header
+    fprintf(file, "P1\n");
+    fprintf(file, "%d %d\n", width, height);
+
+
+	for (int i = 0; i < height; i++){
+		for (int j = 0; j < width; j++){
+			fprintf(file, "%d", field[i][j]);
+		}
+
+	}
+	fclose(file);
+}
+
+
+// gets single neighbor (dead one if out of bounds)
+char get_single_neighbor_secure(int** field, int width, int height, int h_cell, int w_cell, int h_neighbor, int w_neighbor) {
+
+	if (h_cell + h_neighbor < 0 || 
+		h_cell + h_neighbor >= height || 
+		w_cell + w_neighbor < 0 || 
+		w_cell + w_neighbor >= width) {
+
+        return 0;
+    }
+    return field[h_cell + h_neighbor][w_cell + w_neighbor];
+}
+
+// get the 8 surrounding neighbors of a cell
+char get_neighbors(int** field, int width, int height, int h_cell, int w_cell) {
+    char neighbors = 0;
+
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, -1, -1);	// bottom left
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, -1, 0);	// bottom middle
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, -1, 1);	
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 0, -1);
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 0, 1);
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 1, -1);
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 1, 0);
+    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 1, 1);
+
+    return neighbors;
+}
+
+// print entire state of the field 
+void print_field(int** field, int width, int height) {
+    for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
+            char state = field[h][w];
+            if (state)
+                printf("■");
+            else
+                printf("□");
+        }
+        printf("\n");
+    }
 }
 
 // simulate the next generation of the field and save it
@@ -111,70 +150,33 @@ void run_generation_cycle(int** field, int width, int height) {
 }
 
 
-void file_gen (int** field, int width, int height, int step){
-
-	char filename[20];
-    snprintf(filename, sizeof(filename), "gol_%05d.pbm", step);
-
-    FILE *file = fopen(filename, "w");
-    if (!file) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
+// game of life
+int main(int argc, char* argv[]) {
+    if(argc != 5) {
+        printUsage(argv[0]);
+        return EXIT_FAILURE;
     }
 
-    // Write PBM header
-    fprintf(file, "P1\n");
-    fprintf(file, "%d %d\n", width, height);
+    const int width = atoi(argv[1]);
+    const int height = atoi(argv[2]);
+    const double density = atof(argv[3]);
+    const int steps = atoi(argv[4]);
+
+    printf("width:   %4d\n", width);
+    printf("height:  %4d\n", height);
+    printf("density: %4.0f%%\n", density * 100);
+    printf("steps:   %4d\n", steps);
 
 
-	for (int i = 0; i < height; i++){
-		for (int j = 0; j < width; j++){
-			fprintf(file, "%d", field[i][j]);
-		}
+    srand(time(NULL));
 
-	}
-	fclose(file);
-}
+    int **field = init_world(density, width, height);
 
-// get the 8 surrounding neighbors of a cell
-char get_neighbors(int** field, int width, int height, int h_cell, int w_cell) {
-    char neighbors = 0;
-
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, -1, -1);	// bottom left
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, -1, 0);	// bottom middle
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, -1, 1);	
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 0, -1);
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 0, 1);
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 1, -1);
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 1, 0);
-    neighbors += get_single_neighbor_secure(field, width, height, h_cell, w_cell, 1, 1);
-
-    return neighbors;
-}
-
-// gets single neighbor (dead one if out of bounds)
-char get_single_neighbor_secure(int** field, int width, int height, int h_cell, int w_cell, int h_neighbor, int w_neighbor) {
-
-	if (h_cell + h_neighbor < 0 || 
-		h_cell + h_neighbor >= height || 
-		w_cell + w_neighbor < 0 || 
-		w_cell + w_neighbor >= width) {
-
-        return 0;
-    }
-    return field[h_cell + h_neighbor][w_cell + w_neighbor];
-}
-
-// print entire state of the field 
-void print_field(int** field, int width, int height) {
-    for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
-            char state = field[h][w];
-            if (state)
-                printf("■");
-            else
-                printf("□");
-        }
-        printf("\n");
+    for (int i = 0; i < steps; i++) {
+        run_generation_cycle(field, width, height);
+        //print_field(field, width, height);
+        file_gen(field, width, height, i);
     }
 
+    return EXIT_SUCCESS;
+}
