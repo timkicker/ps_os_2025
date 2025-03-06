@@ -122,13 +122,13 @@ void run_generation_cycle(int** field, int width, int height) {
             switch (neighbors) {
                 case 0:
                 case 1:
-                    new_field[h][w] = 0;
+                    new_field[h][w] = 0;  // underpopulation
                     break;
                 case 2:
-                    new_field[h][w] = cell;
+                    new_field[h][w] = cell; // stay as is
                     break;
                 case 3:
-                    new_field[h][w] = 1;
+                    new_field[h][w] = 1; // lives or becomes aliiiiiive
                     break;
                 default:
                     new_field[h][w] = 0;
