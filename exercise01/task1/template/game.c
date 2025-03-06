@@ -110,6 +110,32 @@ void run_generation_cycle(int** field, int width, int height) {
     free(new_field);
 }
 
+
+void file_gen (int** field, int width, int height, int step){
+
+	char filename[20];
+    snprintf(filename, sizeof(filename), "gol_%05d.pbm", step);
+
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Write PBM header
+    fprintf(file, "P1\n");
+    fprintf(file, "%d %d\n", width, height);
+
+
+	for (int i = 0; i < height; i++){
+		for (int j = 0; j < width; j++){
+			fprintf(file, "%d", field[i][j]);
+		}
+
+	}
+	fclose(file);
+}
+
 // get the 8 surrounding neighbors of a cell
 char get_neighbors(int** field, int width, int height, int h_cell, int w_cell) {
     char neighbors = 0;
@@ -151,4 +177,4 @@ void print_field(int** field, int width, int height) {
         }
         printf("\n");
     }
-}
+
