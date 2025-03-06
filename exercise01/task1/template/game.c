@@ -6,6 +6,7 @@ void printUsage(const char* programName) {
 	printf("usage: %s <width> <height> <density> <steps>\n", programName);
 }
 
+// game of life
 int main(int argc, char* argv[]) {
 	if(argc != 5) {
 		printUsage(argv[0]);
@@ -25,8 +26,93 @@ int main(int argc, char* argv[]) {
 	// Seeding the random number generator so we get a different starting field
 	// every time.
 	srand(time(NULL));
+	int seed = rand();
 
-	// TODO
+	int **field = init_world(seed,density,width,height);
 
 	return EXIT_SUCCESS;
+}
+
+// init world and cells 
+int** init_world(int seed, int density, int width, int height){
+
+	int **field = (int **)calloc(height, sizeof(int *));
+    
+    if (field == NULL) {
+        perror("Memory allocation failed");
+        return 1;
+    }
+
+    // alloc for width
+    for (int i = 0; i < height; i++) {
+        field[i] = (int *)calloc(width, sizeof(int));
+        if (field[i] == NULL) {
+            perror("Memory allocation failed");
+            return 1;
+        }
+    }
+	return field;
+}
+
+// simulate the next generation of the field and save it
+void run_generation_cycle(int** field, int width, int height){
+	for (int h = 0; h < height; h++){
+		for (int w = 0; w < width; w++){
+
+			char cell = field[h][w];
+			char neighbors = get_neighbors(field,width,height,h,w);
+
+			// fate dependent on neighbors
+			switch(neighbors) {
+
+				// die
+				case 0: 
+				case 1: 
+					field[h][w] = 0;
+					break;
+				// live
+				case 2: 
+					if (!cell){
+						break;
+					}
+						
+				case 3:
+					field[h][w] = 1;
+					break;
+				// overpopulated
+				default: 
+					field[h][w] = 0;
+					break;
+			}
+
+		}
+		printf("\n");	
+	}
+}
+
+// get the 8 surrounding neighbors of a cell
+char get_neighbors (int** field, int width, int height, int h_cell, int w_cell){
+
+	char neighbors_top =  field[h_cell - 1][w_cell] + field[h_cell - 1][w_cell - 1] + field[h_cell - 1][w_cell + 1]; // first row
+	char neighbors_bottom =  field[h_cell + 1][w_cell] + field[h_cell + 1][w_cell - 1] + field[h_cell + 1 ][w_cell + 1]; // first row
+	char neighbors_side = field[h_cell][w_cell - 1] + field[h_cell][w_cell + 1];
+
+	return neighbors_top + neighbors_bottom + neighbors_side;
+}
+
+// print entire state of the field 
+void print_field(int** field, int width, int height){
+
+	for (int h = 0; h < height; h++){
+		for (int w = 0; w < width; w++){
+
+			char state = field[h][w];
+			if (state)
+				printf('■'); // get state of field
+			else printf('□'); // get state of field
+		}
+		printf("\n");	
+	}
+
+	return;
 }
