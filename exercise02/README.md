@@ -125,7 +125,7 @@ Every child:
 Make sure to only once measure the starting time of the parent process.
 
 _Hint:_ You can use `clock_gettime()` (have a look at the man page `clock_gettime(2)`) to measure wall time.
-For this to work, you have to define `-D_POSIX_C_SOURCE=199309L` feature test macros (see man page `feature_test_macros(7)`).
+To make this work, you can define the `-D_DEFAULT_SOURCE` feature test macro (see `feature_test_macros(7)`).
 
 Use the following implementation for the dice-roll simulation, which returns the **d**ice-**r**oll **p**robability:
 
@@ -194,16 +194,23 @@ exc02_csXXXXXX.zip
 
 Requirements
 
-- [ ] Auto-format all source files
-- [ ] Check your submission on ZID-GPL
-- [ ] Check your file structure
-- [ ] Submit zip
-- [ ] Mark solved exercises in OLAT
 - [ ] Any implementation MUST NOT produce any additional output
 - [ ] If you work in a group, create a `group.txt` file according to the format specified below.
+- [ ] Auto-format all source files
+- [ ] Check your submission on ZID-GPL
+- [ ] Check your file structure (and permissions!)
+- [ ] Submit zip
+- [ ] Mark solved exercises in OLAT
 
-If you worked in a group, the `group.txt` file must be present and have one line per student which contains the proseminar group in the beginning, followed by the matriculation number and the student's name. For example, if the group consists of Jane Doe, who is in proseminar group 2 and has matriculation number 12345678, and Max Mustermann, who is in proseminar group 3 and has matriculation number 87654321, the `group.txt` file should look like this:
+If you worked in a group, the `group.txt` file must be present
+and have one line per student which contains the matriculation number
+in the beginning, followed by a space and the student's name.
+For example, if the group consists of Jane Doe,
+who has matriculation number 12345678,
+and Max Mustermann, who has matriculation number 87654321,
+the `group.txt` file should look like this:
 
 ```text
-ps_group_2 12345678 Jane Doe
-ps_group_3 87654321 Max Mustermann
+12345678 Jane Doe
+87654321 Max Mustermann
+```
