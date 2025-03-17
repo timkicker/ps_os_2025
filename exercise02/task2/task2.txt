@@ -1,0 +1,5 @@
+Answer the following questions:
+- Which command did you use to set the permissions for 'task2.txt'?
+chmod 400 file.txt 
+- Which command did you use to set the permissions for 'file.txt'?
+chmod 600 file.txt
