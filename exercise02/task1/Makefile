@@ -30,5 +30,4 @@ key.o: main.o create_key key.c
 	$(CC) $(CFLAGS) -c key.c
 
 clean:
-	@echo "Cleaning up"
 	@rm -f $(OBJ) $(EXEC) key.c
