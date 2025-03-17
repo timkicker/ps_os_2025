@@ -30,11 +30,13 @@ int main(int argc, char *argv[]) {
     }
 
     //stopwatch
+    //deepseek (unable to find URL)
     struct timespec start_time;
     if (clock_gettime(CLOCK_MONOTONIC, &start_time) == -1) {
         perror("clock_gettime");
         exit(EXIT_FAILURE);
     }
+    //deepseek (end)
 
     //children with possibilities
     int min_target = 2;
@@ -42,6 +44,7 @@ int main(int argc, char *argv[]) {
     int num_children = max_target - min_target + 1;
 
     //lots of children
+    //deepseek (unable to find URL)
     for (int i = 0; i < num_children; i++) {
         pid_t pid = fork();
         if (pid == -1) {
@@ -50,7 +53,7 @@ int main(int argc, char *argv[]) {
         } else if (pid == 0) {
             int t = min_target + i; 
             srand(getpid());
-
+            //deepseek (end)
 
             double probability = DR_p(t, n, s);
 
