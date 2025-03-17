@@ -1,34 +1,29 @@
-.PHONY: all create_key clean
+# Use this file at your own risk.
+# Always ensure that the required files are actually put into the archive,
+# and that no additional files are archived.
+# You can use the zipinfo command to check the file structure of an existing archive.
 
-CC = cc
-CFLAGS = -std=c11 -Wall -Wextra
+USERNAME = csbb8841
+EXERCISE = 02
 
-SRC = main.c key.c
-OBJ = main.o key.o
-EXEC = main
+# This excludes some common directories automatically.
+# Adjust this list according to your setup.
+# The zip command will also show which files are put into the archive.
+# Check this output to ensure that only the required files are included.
+EXCLUDE_PATTERNS = "**.vscode/*" "**.idea/*" "**__MACOSX/*" "**.DS_Store/*" "**.dSYM/*"
 
-all: $(EXEC)
+ARCHIVE= "../exc$(EXERCISE)_$(USERNAME).zip"
 
-create_key:
-	@echo "Creating key.c"
-	@echo '#include "key.h"' > key.c
-	@echo '' >> key.c
-	@echo 'const char* get_key() {' >> key.c
-	@echo '    return "'$(shell whoami)'";' >> key.c
-	@echo '}' >> key.c
+.PHONY: all
+all: zip
 
-$(EXEC): $(OBJ)
-	@echo "Linking main"
-	$(CC) $(OBJ) -o $(EXEC)
+.PHONY: zip
+zip: clean
+	$(RM) $(ARCHIVE)
+	zip -r $(ARCHIVE) . --exclude $(EXCLUDE_PATTERNS)
 
-main.o: main.c
-	@echo "Compiling main.c"
-	$(CC) $(CFLAGS) -c main.c
-
-key.o: main.o create_key key.c
-	@echo "Compiling key.c"
-	$(CC) $(CFLAGS) -c key.c
-
+.PHONY: clean
 clean:
-	@echo "Cleaning up"
-	@rm -f $(OBJ) $(EXEC) key.c
+	@for dir in task?; do \
+	  $(MAKE) -C "$$dir" clean; \
+	done
