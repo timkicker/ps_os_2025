@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    int n = atoi(argv[1]);          //what kind of d it is
+    int n = atoi(argv[1]); //what kind of d it is
     unsigned long long s = strtoull(argv[2], NULL, 10); //sim interations
 
     if (n < 2 || s < 1) {
@@ -41,10 +41,11 @@ int main(int argc, char *argv[]) {
     int max_target = 2 * n;
     int num_children = max_target - min_target + 1;
 
+    //lots of children
     for (int i = 0; i < num_children; i++) {
         pid_t pid = fork();
         if (pid == -1) {
-            perror("fork");
+            perror("fork failure");
             exit(EXIT_FAILURE);
         } else if (pid == 0) {
             int t = min_target + i; 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < num_children; i++) {
         if (wait(NULL) == -1) {
-            perror("wait");
+            perror("wait failure");
             exit(EXIT_FAILURE);
         }
     }
