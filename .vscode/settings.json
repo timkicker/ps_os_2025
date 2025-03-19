@@ -1,3 +1,7 @@
 {
-    "files.exclude": {}
+    "files.exclude": {},
+    "files.associations": {
+        "time.h": "c",
+        "wait.h": "c"
+    }
 }

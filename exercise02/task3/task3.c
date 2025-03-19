@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <time.h>
 #include <errno.h>
+#include <sys/wait.h>
+
 
 
 double DR_p(const int t, const int n, const unsigned long long s) {
