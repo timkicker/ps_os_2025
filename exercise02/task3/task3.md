@@ -17,8 +17,3 @@
 
 **Question**: Does it matter whether you seed the random number generator using `srand(getpid())` before or after the call to `fork()`?  
 **Answer**: Yes, it matters. If `srand(getpid())` is called **before** `fork()`, all child processes will inherit the same seed and generate the same sequence of random numbers. If it is called **after** `fork()`, each child process will have a unique seed and generate different sequences of random numbers.
-
----
-
-**Question**: Explain your answer.  
-**Answer**: Seeding with `srand(getpid())` ensures that each child process has a unique seed because each process has a unique PID. If seeding is done **before** `fork()`, all child processes will use the same seed, resulting in identical random sequences. If seeding is done **after** `fork()`, each child process will use its own PID as the seed, ensuring unique random sequences.
