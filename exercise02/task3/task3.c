@@ -1,3 +1,4 @@
+//feature test macro, makes clock_gettime work correctly (hidden flags)
 #define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
