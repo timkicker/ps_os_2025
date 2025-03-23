@@ -24,6 +24,6 @@ zip: clean
 
 .PHONY: clean
 clean:
-	@for dir in task?; do \
+	@for dir in task_?; do \
 	  $(MAKE) -C "$$dir" clean; \
 	done
