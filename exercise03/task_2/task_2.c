@@ -59,6 +59,10 @@ int main(int argc, const char** argv) {
 		}
 		if (pid == 0) {
 			string_shift_right(arg_index, shared_strings[arg_index], argv[arg_index]);
+			//forgot to free memory used by child process
+            for (int i = 0; i < argc; i++) {
+                free(shared_strings[i]);
+            }
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -72,7 +76,7 @@ int main(int argc, const char** argv) {
 
 	}
 
-	//no free command, meaning memory is not freed after usage and therefore lost
+	//no free command, meaning memory is not freed after parent usage and therefore lost
 	for (int arg_index = 0; arg_index < argc; arg_index++) {
 		free(shared_strings[arg_index]);
 	}
