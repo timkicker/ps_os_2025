@@ -90,3 +90,5 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
+
+//./task_3b ./random_one.txt ./random_two.txt ./random_three.txt ./random_four.txt ./random_five.txt ./random_six.txt ./random_seven.txt ./random_eight.txt ./random_nine.txt ./random_ten.txt
