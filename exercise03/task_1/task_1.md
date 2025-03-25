@@ -7,7 +7,7 @@
 
 ## What can the signals SIGSTOP and SIGCONT be used for?
 
-- `SIGSTOP` pauses (suspends) a process, putting it into a stopped state. It cannot be caught or ignored.
+- `SIGSTOP` pauses a process, putting it into a stopped state. It cannot be caught or ignored.
 - `SIGCONT` resumes a stopped process, allowing it to continue executing. These signals are commonly used for job control in shells (e.g., pausing and resuming processes).
 
 ---
