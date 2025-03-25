@@ -88,3 +88,18 @@ int main(int argc, const char** argv) {
 
     return EXIT_SUCCESS;
 }
+
+/*
+processes don’t share memory, so when the child updates accumulation,
+it only changes in the child’s memory space, and the parent doesn’t see the update.
+
+threads share memory, meaning the thread’s changes to accumulation
+directly affect the global variable in the main thread.
+
+possible race condition: since accumulation is shared, if multiple threads 
+were added without synchronization, they could interfere with each other’s updates.
+ 
+this highlights a key difference: 
+child processes have isolated memory, 
+while threads operate in a shared memory space.
+*/

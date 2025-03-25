@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <stdbool.h>
 #include <signal.h>
@@ -7,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>   
 #include <sys/prctl.h> // linux process name
+#include <sys/wait.h>
 
 /*
     Debugger may fail, since it stops on signal detection (error "EINTR") per default
@@ -89,7 +91,7 @@ int main(void) {
     register_handler(SIGUSR1);
     register_handler(SIGUSR2);
     // SIGKILL and SIGSTOP cannot be handled
-    // Source: https://www.youtube.com/watch?v=83M5-NPDeWs
+    // Source: https://www.youtube.com/watch?v=83M5-NPDeWs 
 
     const time_t work_seconds = 1;
 

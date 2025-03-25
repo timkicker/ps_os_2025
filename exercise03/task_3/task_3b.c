@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         
         int ret = pthread_create(&threads[i], NULL, thread_sum, &args_array[i]);
         if (ret != 0) {
-            fprintf(stderr, "pthread_create failed for thread\n"));
+            fprintf(stderr, "pthread_create failed for thread\n");
             free(threads);
             free(args_array);
             return EXIT_FAILURE;
