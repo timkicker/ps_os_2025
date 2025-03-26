@@ -1,4 +1,4 @@
-CFLAGS += -std=c11 -Wall -Wextra -Wpedantic -pthread -Wno-return-local-addr
+CFLAGS += -std=c11 -Wall -Wextra -Wpedantic -pthread -Wno-return-local-addr -g
 LDFLAGS += -pthread
 
 TARGET = task_2
