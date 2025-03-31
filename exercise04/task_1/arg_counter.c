@@ -66,6 +66,7 @@ int sumNumbers(const char *str)
     {
         if (isdigit(*str))
         {
+            //for multi digit number addition
             current = current * 10 + (*str - '0');
         }
         else
@@ -121,7 +122,7 @@ bool containsRomanNumeral(const char *str)
 }
 
 bool containsElementSymbol(const char *str) {
-    // Correct element symbols (case-sensitive)
+    //correct element symbols (case-sensitive)
     const char *elements[] = {
         "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
         "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
