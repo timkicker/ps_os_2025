@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
     dup2(pipe_fd[0], STDIN_FILENO);
     close(pipe_fd[0]);
 
-    // https://stackoverflow.com/questions/2605130/redirection-in-exec
     execlp("cut", "cut", "-c", "22-", (char *)NULL);
     perror("execlp cut");
     exit(EXIT_FAILURE);

@@ -8,6 +8,7 @@ enum errorCodes
 {
     noArgs = 13,
     tooManyArgs = 7, //./arg_counter "January@10Ab" "FebruAry!3C" "March$7D" "April%5E" "May^6F" "June&8G" "July*4H" "August(9I" "September)11J" "October#12K" "November+13L" "December-14M" "III_15He"
+    //./arg_counter 'January@10Ab' 'FebruArym$ake25' 'March$7D' 'April%5E' 'May^6F' 'June&8G' 'July*4H' 'August(9I' 'September)11J' 'October#12K'
     invalidOFFSET = 99,
     // see https://neal.fun/password-game/ for rule inspiration
     minFiveArgs = 2, //the length of each arg must be greater or equal to 5
