@@ -50,13 +50,12 @@ int main(int argc, char *argv[])
     {
         snprintf(clients[i].name, sizeof(clients[i].name), "%s", argv[i + 1]);
 
-        // create a temporary buffer to avoid any overlap
+        //create a temporary buffer to avoid any overlap
         char temp_fifo_path[100];
 
-        // create the FIFO path string
         snprintf(temp_fifo_path, sizeof(temp_fifo_path), FIFO_DIR "%s_fifo", clients[i].name);
 
-        // now assign the generated path to the client's fifo_path
+        //now assign the generated path to the client's fifo_path
         strncpy(clients[i].fifo_path, temp_fifo_path, sizeof(clients[i].fifo_path) - 1);
         clients[i].fifo_path[sizeof(clients[i].fifo_path) - 1] = '\0'; // ensure null-termination
 
