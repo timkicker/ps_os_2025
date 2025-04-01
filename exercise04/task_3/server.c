@@ -7,83 +7,86 @@
 #include <sys/types.h>
 #include <sys/poll.h>
 
-void clean(int range, int *fifo_file_descriptors, char fifo_paths[][1024]) {
-        for (int i = 0; i < range; i++) {
-                close(fifo_file_descriptors[i]);
-                unlink(fifo_paths[i]);
+#define MAX_PATH_LEN 1024
+#define MAX_NAME_LEN 128
+
+void clean_resources(int count, int *fds, char paths[][MAX_PATH_LEN]) {
+    for (int i = 0; i < count; i++) {
+        if (fds[i] != -1) {
+            close(fds[i]);
         }
+        unlink(paths[i]);
+    }
 }
 
 int main(int argc, char **argv) {
-        if (argc < 2) {
-                fprintf(stderr, "Usage: server.c <client1> ... <clientN>\n");
-                return EXIT_FAILURE;
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <client1> ... <clientN>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    int client_count = argc - 1;
+    int active_clients = 0;
+    char fifo_paths[client_count][MAX_PATH_LEN];
+    char client_names[client_count][MAX_NAME_LEN];
+    int fifo_fds[client_count];
+    struct pollfd poll_fds[client_count];
+    int message_counter = 0;
+
+    for (int i = 0; i < client_count; i++) {
+        snprintf(client_names[i], MAX_NAME_LEN, "%s", argv[i + 1]);
+        snprintf(fifo_paths[i], MAX_PATH_LEN, "/tmp/%s_csbb8841_fifo", client_names[i]);
+
+        if (access(fifo_paths[i], F_OK) == 0) {
+                unlink(fifo_paths[i]);
         }
 
-        int potential_clients = argc - 1;
-        int connected_clients = 0;
-        char fifo_paths[potential_clients][1024];
-        char client_names[potential_clients][128];
-        int fifo_file_descriptors[potential_clients];
-        struct pollfd poll_file_descriptors[potential_clients];
-        int message_count = 0;
-
-        for (int i = 0; i < potential_clients; ++i) {
-                snprintf(client_names[i], sizeof(client_names[i]), "%s", argv[i + 1]);
-                snprintf(fifo_paths[i], sizeof(fifo_paths[i]), "/tmp/%s_csbb8841_fifo", client_names[i]);
-
-                if (mkfifo(fifo_paths[i], 0666) == -1) {
-                        fprintf(stderr, "error creating fifo\n");
-                        clean(potential_clients, fifo_file_descriptors, fifo_paths);
-                        return EXIT_FAILURE;
-                }
-
-                fifo_file_descriptors[i] = open(fifo_paths[i], O_RDONLY);
-                if (fifo_file_descriptors[i] == -1) {
-                        fprintf(stderr, "error opening fifo\n");
-                        clean(potential_clients, fifo_file_descriptors, fifo_paths);
-                        return EXIT_FAILURE;
-                }
-
-                poll_file_descriptors[i].fd = fifo_file_descriptors[i];
-                poll_file_descriptors[i].events = POLLIN;
-                printf("%s connected.\n", client_names[i]);
-                connected_clients++;
+        if (mkfifo(fifo_paths[i], 0666) == -1) {
+            perror("Error creating FIFO");
+            clean_resources(i, fifo_fds, fifo_paths);
+            return EXIT_FAILURE;
         }
 
-        while (connected_clients) {
-                int poll_count = poll(poll_file_descriptors, potential_clients, -1);
-                if (poll_count == -1) {
-                        fprintf(stderr, "error with poll\n");
-                        clean(potential_clients, fifo_file_descriptors, fifo_paths);
-                        return EXIT_FAILURE;
-                }
-
-                for (int i = 0; i < potential_clients; ++i) {
-                        if (poll_file_descriptors[i].revents & POLLIN) {
-                                char message_buffer[1024];
-                                ssize_t char_count = read(fifo_file_descriptors[i], message_buffer, sizeof(message_buffer) - 1);
-
-                                if (char_count == -1) {
-                                        fprintf(stderr, "error reading from fifo\n");
-                                        return EXIT_FAILURE;
-                                } else if (char_count == 1) {
-                                        printf("%s disconnected.\n", client_names[i]);
-                                        close(fifo_file_descriptors[i]);
-                                        unlink(fifo_paths[i]);
-                                        poll_file_descriptors[i].fd = -1;
-                                        connected_clients--;
-                                } else {
-                                        message_buffer[char_count - 1] = '\0';
-                                        message_count++;
-                                        printf("Message %d: \"%s\" from %s\n", message_count, message_buffer, client_names[i]);
-                                }
-                        }
-                }
-
-
+        fifo_fds[i] = open(fifo_paths[i], O_RDONLY);
+        if (fifo_fds[i] == -1) {
+            perror("Error opening FIFO");
+            clean_resources(i, fifo_fds, fifo_paths);
+            return EXIT_FAILURE;
         }
-        clean(potential_clients, fifo_file_descriptors, fifo_paths);
-        printf("All clients disconnected\n");
-        return EXIT_SUCCESS;
+
+        poll_fds[i].fd = fifo_fds[i];
+        poll_fds[i].events = POLLIN;
+        printf("%s connected.\n", client_names[i]);
+        active_clients++;
+    }
+
+    while (active_clients > 0) {
+        if (poll(poll_fds, client_count, -1) == -1) {
+            perror("Error with poll");
+            clean_resources(client_count, fifo_fds, fifo_paths);
+            return EXIT_FAILURE;
+        }
+
+        for (int i = 0; i < client_count; i++) {
+            if (poll_fds[i].revents & POLLIN) {
+                char buffer[MAX_PATH_LEN];
+                ssize_t bytes_read = read(fifo_fds[i], buffer, sizeof(buffer) - 1);
+
+                if (bytes_read <= 1) {
+                    printf("%s disconnected.\n", client_names[i]);
+                    close(fifo_fds[i]);
+                    unlink(fifo_paths[i]);
+                    poll_fds[i].fd = -1;
+                    active_clients--;
+                } else {
+                    buffer[bytes_read - 1] = '\0';
+                    printf("Message %d: \"%s\" from %s\n", ++message_counter, buffer, client_names[i]);
+                }
+            }
+        }
+    }
+
+    clean_resources(client_count, fifo_fds, fifo_paths);
+    printf("All clients disconnected.\n");
+    return EXIT_SUCCESS;
 }
