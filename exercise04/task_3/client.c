@@ -3,49 +3,42 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <errno.h>
 
-#define FIFO_DIR "/tmp/"
-#define PIPE_BUF 4096
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <client_name>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    char fifo_path[100];
-    snprintf(fifo_path, sizeof(fifo_path), FIFO_DIR "%s_fifo", argv[1]);
-
-    //https://stackoverflow.com/questions/52904971/opening-a-fifo-for-reading-in-c
-    int fd = open(fifo_path, O_WRONLY);
-    if (fd == -1) {
-        perror("open");
-        return EXIT_FAILURE;
-    }
-
-    printf("Message: \n");
-    char buffer[PIPE_BUF];
-
-    while (1) {
-        if (fgets(buffer, PIPE_BUF, stdin) == NULL) {
-            break;
+int main(int argc, char **argv) {
+        if (argc != 2) {
+                fprintf(stderr, "Usage: ./client.c <client_name>\n");
+                return EXIT_FAILURE;
         }
 
-        size_t len = strlen(buffer);
-        if (buffer[len - 1] == '\n') { //removing newline character
-            buffer[len - 1] = '\0';
+        char fifo_path[1000];
+        snprintf(fifo_path, sizeof(fifo_path), "/tmp/%s_csbb8841_fifo", argv[1]);
+
+        int fifo_file_descriptor = open(fifo_path, O_WRONLY);
+        if (fifo_file_descriptor == -1) {
+                fprintf(stderr, "error opening fifo\n");
+                return EXIT_FAILURE;
         }
 
-        if (strlen(buffer) == 0) { //if empty message, disconnect
-            break;
+        char message[1000];
+        while(1) {
+                printf("Message: ");
+                if (fgets(message, sizeof(message), stdin) == NULL) {
+                        fprintf(stderr, "error reading message from stdin\n");
+                        return EXIT_FAILURE;
+                }
+
+                if (write(fifo_file_descriptor, message, strlen(message)) != (ssize_t)strlen(message)) {
+                        fprintf(stderr, "error sending message");
+                        return EXIT_FAILURE;
+                }
+
+                if (strlen(message) == 1) {
+                        printf("disconnect\n");
+                        break;
+                }
         }
 
-        write(fd, buffer, strlen(buffer));
-        printf("Message: \n");
-    }
+        close(fifo_file_descriptor);
 
-    close(fd);
-    return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
 }

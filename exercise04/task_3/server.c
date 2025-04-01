@@ -4,136 +4,86 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <poll.h>
-#include <errno.h>
+#include <sys/types.h>
+#include <sys/poll.h>
 
-#define FIFO_DIR "/tmp/"
-#define MAX_CLIENTS 2
-#define PIPE_BUF 4096
-
-typedef struct
-{
-    char name[50];
-    char fifo_path[100];
-    int fd;
-} Client;
-
-void cleanup_fifos(Client *clients, int num_clients)
-{
-    for (int i = 0; i < num_clients; i++)
-    {
-        close(clients[i].fd);         // closing file descriptor
-        unlink(clients[i].fifo_path); // removing fifo file
-    }
+void clean(int range, int *fifo_file_descriptors, char fifo_paths[][1024]) {
+        for (int i = 0; i < range; i++) {
+                close(fifo_file_descriptors[i]);
+                unlink(fifo_paths[i]);
+        }
 }
 
-int main(int argc, char *argv[])
-{
-    if (argc < 2)
-    {
-        fprintf(stderr, "Usage: %s <client1> <client2> ...\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-
-    int num_clients = argc - 1;
-    if (num_clients > MAX_CLIENTS)
-    {
-        fprintf(stderr, "Too many clients. Max is %d.\n", MAX_CLIENTS);
-        return EXIT_FAILURE;
-    }
-
-    Client clients[MAX_CLIENTS];
-    struct pollfd poll_fds[MAX_CLIENTS];
-    int message_count = 0;
-
-    for (int i = 0; i < num_clients; i++)
-    {
-        snprintf(clients[i].name, sizeof(clients[i].name), "%s", argv[i + 1]);
-
-        //create a temporary buffer to avoid any overlap
-        char temp_fifo_path[100];
-
-        snprintf(temp_fifo_path, sizeof(temp_fifo_path), FIFO_DIR "%s_fifo", clients[i].name);
-
-        //now assign the generated path to the client's fifo_path
-        strncpy(clients[i].fifo_path, temp_fifo_path, sizeof(clients[i].fifo_path) - 1);
-        clients[i].fifo_path[sizeof(clients[i].fifo_path) - 1] = '\0'; // ensure null-termination
-
-        // https://stackoverflow.com/questions/3790921/creating-named-pipes-in-c
-        if (mkfifo(clients[i].fifo_path, 0666) == -1 && errno != EEXIST)
-        {
-            perror("mkfifo");
-            cleanup_fifos(clients, i);
-            return EXIT_FAILURE;
-        }
-
-        // https://stackoverflow.com/questions/52904971/opening-a-fifo-for-reading-in-c
-        clients[i].fd = open(clients[i].fifo_path, O_RDONLY);
-        if (clients[i].fd == -1)
-        {
-            perror("open");
-            cleanup_fifos(clients, i);
-            return EXIT_FAILURE;
-        }
-
-        poll_fds[i].fd = clients[i].fd;
-        poll_fds[i].events = POLLIN;
-
-        printf("%s connected.\n", clients[i].name);
-    }
-
-    while (num_clients > 0)
-    {
-        // https://stackoverflow.com/questions/70467701/how-to-use-poll-in-c
-        int ret = poll(poll_fds, num_clients, -1);
-        if (ret == -1)
-        {
-            perror("poll");
-            cleanup_fifos(clients, num_clients);
-            return EXIT_FAILURE;
-        }
-
-        for (int i = 0; i < num_clients; i++)
-        {
-
-            // set a small timeout for poll (100ms), so that client termiantes
-            int ret = poll(poll_fds, num_clients, 100);
-            if (ret == -1)
-            {
-                perror("poll");
-                cleanup_fifos(clients, num_clients);
+int main(int argc, char **argv) {
+        if (argc < 2) {
+                fprintf(stderr, "Usage: server.c <client1> ... <clientN>\n");
                 return EXIT_FAILURE;
-            }
-            if (poll_fds[i].revents & POLLIN)
-            {
-                char buffer[PIPE_BUF];
-                ssize_t bytes_read = read(clients[i].fd, buffer, PIPE_BUF - 1); // reading message
-
-                if (bytes_read > 0)
-                {
-                    buffer[bytes_read] = '\0';
-                    printf("Message %d: \"%s\" from %s\n", ++message_count, buffer, clients[i].name);
-                }
-                else
-                {
-                    printf("%s disconnected.\n", clients[i].name);
-                    close(clients[i].fd);
-                    unlink(clients[i].fifo_path);
-
-                    for (int j = i; j < num_clients - 1; j++)
-                    {
-                        clients[j] = clients[j + 1];
-                        poll_fds[j] = poll_fds[j + 1];
-                    }
-                    num_clients--;
-                    i--; // adjust index since clients shifted
-                }
-            }
         }
-        if (num_clients == 0) {
-            break; //doesnt seem to end, perhaps I need to remove the ln linebreak to make the message truly empty
-    }
-    }
-    printf("All clients disconnected.\n");
-    return EXIT_SUCCESS;
+
+        int potential_clients = argc - 1;
+        int connected_clients = 0;
+        char fifo_paths[potential_clients][1024];
+        char client_names[potential_clients][128];
+        int fifo_file_descriptors[potential_clients];
+        struct pollfd poll_file_descriptors[potential_clients];
+        int message_count = 0;
+
+        for (int i = 0; i < potential_clients; ++i) {
+                snprintf(client_names[i], sizeof(client_names[i]), "%s", argv[i + 1]);
+                snprintf(fifo_paths[i], sizeof(fifo_paths[i]), "/tmp/%s_csbb8841_fifo", client_names[i]);
+
+                if (mkfifo(fifo_paths[i], 0666) == -1) {
+                        fprintf(stderr, "error creating fifo\n");
+                        clean(potential_clients, fifo_file_descriptors, fifo_paths);
+                        return EXIT_FAILURE;
+                }
+
+                fifo_file_descriptors[i] = open(fifo_paths[i], O_RDONLY);
+                if (fifo_file_descriptors[i] == -1) {
+                        fprintf(stderr, "error opening fifo\n");
+                        clean(potential_clients, fifo_file_descriptors, fifo_paths);
+                        return EXIT_FAILURE;
+                }
+
+                poll_file_descriptors[i].fd = fifo_file_descriptors[i];
+                poll_file_descriptors[i].events = POLLIN;
+                printf("%s connected.\n", client_names[i]);
+                connected_clients++;
+        }
+
+        while (connected_clients) {
+                int poll_count = poll(poll_file_descriptors, potential_clients, -1);
+                if (poll_count == -1) {
+                        fprintf(stderr, "error with poll\n");
+                        clean(potential_clients, fifo_file_descriptors, fifo_paths);
+                        return EXIT_FAILURE;
+                }
+
+                for (int i = 0; i < potential_clients; ++i) {
+                        if (poll_file_descriptors[i].revents & POLLIN) {
+                                char message_buffer[1024];
+                                ssize_t char_count = read(fifo_file_descriptors[i], message_buffer, sizeof(message_buffer) - 1);
+
+                                if (char_count == -1) {
+                                        fprintf(stderr, "error reading from fifo\n");
+                                        return EXIT_FAILURE;
+                                } else if (char_count == 1) {
+                                        printf("%s disconnected.\n", client_names[i]);
+                                        close(fifo_file_descriptors[i]);
+                                        unlink(fifo_paths[i]);
+                                        poll_file_descriptors[i].fd = -1;
+                                        connected_clients--;
+                                } else {
+                                        message_buffer[char_count - 1] = '\0';
+                                        message_count++;
+                                        printf("Message %d: \"%s\" from %s\n", message_count, message_buffer, client_names[i]);
+                                }
+                        }
+                }
+
+
+        }
+        clean(potential_clients, fifo_file_descriptors, fifo_paths);
+        printf("All clients disconnected\n");
+        return EXIT_SUCCESS;
 }
