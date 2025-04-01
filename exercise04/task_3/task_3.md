@@ -1,0 +1,8 @@
+### What happens in your program if two clients with the same name would join?
+If two clients with the same name try to join, they would both try to create and open the same FIFO file. This would likely cause issues because the second client could fail to create the FIFO (if it already exists) or could interfere with messages being sent/received. To mitigate this, we could enforce unique client names by checking the list of existing clients before accepting a new one. Alternatively, we could append a unique identifier (like a process ID or a counter) to each client's FIFO name to avoid conflicts.
+
+### Why is it important that a message is at most `PIPE_BUF` long?
+Messages up to `PIPE_BUF` bytes are guaranteed to be written atomically to a FIFO. This means that if multiple clients write to the FIFO at the same time, their messages won’t get interleaved. If a message were longer than `PIPE_BUF`, it could be split across multiple writes, leading to mixed-up messages and making it harder to properly read and process them.
+
+### What file permissions did you use to create and open your FIFOs? Why?
+The FIFOs are created with `0666` (read and write permissions for everyone). This ensures that all clients can write to and read from the named pipes without permission issues. Since the program is handling communication, we want to make sure that the server and clients don’t run into unexpected permission errors when trying to interact with the FIFOs.

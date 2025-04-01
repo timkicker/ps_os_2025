@@ -1,20 +1,42 @@
-## How do you set/unset environment variables in your shell?
+### How do you set/unset environment variables in your shell?
 
-- global:   `export OFFSET=5`
+To set an environment variable in the shell, use the `export` command:
+```bash
+export MY_VAR=value
+```
+To unset it, simply use `unset`:
+```bash
+unset MY_VAR
+```
 
-- cmd only: `OFFSET=5 ./arg_counter a b c`
+### How can you retrieve the returned *exit code* in your shell after running the program?
 
-## How can you retrieve the returned exit code in your shell after running the program?
+You can get the exit code of the last command using the `$?` variable:
+```bash
+./my_program
+echo $?
+```
+This will print the exit code of the last executed program.
 
-`echo $?` returns the exit code of the last ran program
+### In your shell `;`, `&&`, and `||` can be used to execute multiple commands on a single line. What are the differences between these 3 operators?
 
-## In your shell ;, &&, and || can be used to execute multiple commands on a single line. What are the differences between these 3 operators?
+- `;` lets you run multiple commands in sequence, no matter if the previous one succeeded or not:
+  ```bash
+  command1; command2
+  ```
+  
+- `&&` runs the second command only if the first one succeeds (exit code 0):
+  ```bash
+  command1 && command2
+  ```
+  This way, `command2` only runs if `command1` completes without errors.
+  
+- `||` runs the second command only if the first one fails (non-zero exit code):
+  ```bash
+  command1 || command2
+  ```
+  In this case, `command2` runs if `command1` encounters an error.
 
-- `;`: Runs both commands, one after another, regardless of success/failure
-- `&&`: Runs the second command only if the first command succeeds
-- `||`: Runs the second command only if the first one fails
+### What is the `PATH` environment variable and why is it important?
 
-## What is the PATH environment variable and why is it important?
-
-Tells your OS where essential programs ("commands") are stored.
-Without PATH, you'd have to type full paths for every command. 
+The `PATH` variable contains a list of directories the shell searches for executables when you type a command. It allows you to run commands without specifying their full path. The `PATH` is important because it tells the shell where to find the programs you're trying to execute. Without the correct directories in your `PATH`, you’d need to provide the full path every time you run a program.
