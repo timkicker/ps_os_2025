@@ -6,20 +6,20 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-// Still unclear: Why are we mixing threads and processes??? 
+// Still unclear: Why are we mixing threads and processes???
 // Intended error?
 
 void string_shift_right(int arg_index, char* input, const char* original) {
 	size_t input_length = strlen(input);
 
 	// strlen does not take 0-terminator into account
- // char shifted_input[input_length];
+	// char shifted_input[input_length];
 	char shifted_input[input_length + 1];
 	shifted_input[input_length] = '\0';
 
 	for (size_t char_index = 0; char_index < input_length; ++char_index) {
 		// since we do want to use a circular approach, % is needed
-	//  size_t new_position = (char_index + 2) / input_length;
+		//  size_t new_position = (char_index + 2) / input_length;
 		size_t new_position = (char_index + 2) % input_length;
 		shifted_input[new_position] = input[char_index];
 	}
@@ -36,8 +36,8 @@ int main(int argc, const char** argv) {
 	char* shared_strings[argc];
 	for (int arg_index = 0; arg_index < argc; ++arg_index) {
 		// strlengh does not take '\0' into account
-     // size_t arg_length = strlen(argv[arg_index]);
-	 	size_t arg_length = strlen(argv[arg_index]) + 1;
+		// size_t arg_length = strlen(argv[arg_index]);
+		size_t arg_length = strlen(argv[arg_index]) + 1;
 		shared_strings[arg_index] = malloc(arg_length * sizeof(char));
 		if (shared_strings[arg_index] == NULL) {
 			fprintf(stderr, "Could not allocate memory.\n");
@@ -47,7 +47,7 @@ int main(int argc, const char** argv) {
 	}
 
 	// "<=" creates an extra iteration, wich results in "out of bounce"
- // for (int arg_index = 0; arg_index <= argc; arg_index++) {
+	// for (int arg_index = 0; arg_index <= argc; arg_index++) {
 	for (int arg_index = 0; arg_index < argc; arg_index++) {
 		pid_t pid = fork();
 		if (pid == -1) {
@@ -61,10 +61,10 @@ int main(int argc, const char** argv) {
 	}
 
 	// same itearation error as for-loop above
- // for (int arg_index = 0; arg_index <= argc; arg_index++) {
+	// for (int arg_index = 0; arg_index <= argc; arg_index++) {
 	for (int arg_index = 0; arg_index < argc; arg_index++) {
 		// pthread is for threads, wait is for forking processes
-	 // pthread_join(arg_index, NULL);
+		// pthread_join(arg_index, NULL);
 		wait(NULL);
 	}
 
