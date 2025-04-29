@@ -6,108 +6,92 @@
 # --- ADJUST BELOW ----------------------------------------------------------------------------------
 
 # Number of people: set to 1, 2 or 3 (how many zips to create)
-PEOPLE ?= 3
-USERNAME_PERSON_1 = csbaXXXX
-USERNAME_PERSON_2 = csbbXXXX
-USERNAME_PERSON_3 = csbcXXXX
-EXERCISE = 05
+PEOPLE ?= 2
 
-# Data for group.txt. Only relevant if PEOPLE is greater than 1.
-PERSON_1 = Max Mustermann
-PERSON_2 = Gordon Freeman
-PERSON_3 = Alyx Vance
-MAT_NUM_1 = 12345678
-MAT_NUM_2 = 87654321
-MAT_NUM_3 = 98765432
+# Usernames for the zip filenames
+USERNAMES = csbaXXXX csbbXXXX csbcXXXX
+
+# Names and matriculation numbers for group.txt (only used if PEOPLE > 1)
+# Underscores in PERSONS are replaced by spaces in the output.
+PERSONS   = Max_Mustermann Gordon_Freeman Alyx_Vance
+MAT_NUMS  = 12345678 87654321 98765432
+
+# Exercise number / folder
+EXERCISE  = 04
 
 # ---------------------------------------------------------------------------------------------------
 
 # This excludes some common directories automatically.
 # Also ignores all binaries and README.md.
-EXCLUDE_PATTERNS = "**.vscode/*" "**.idea/*" "**__MACOSX/*" "**.DS_Store/*" "**.dSYM/*" "**/*.o" "**/a.out" "README.md"
+EXCLUDE_PATTERNS = \
+    "**.vscode/*" \
+    "**.idea/*" \
+    "**__MACOSX/*" \
+    "**.DS_Store/*" \
+    "**.dSYM/*" \
+    "**/*.o" \
+    "**/a.out" \
+    "README.md"
 
-ARCHIVE_PERSON_1 = ./exc$(EXERCISE)_$(USERNAME_PERSON_1).zip
-ARCHIVE_PERSON_2 = ./exc$(EXERCISE)_$(USERNAME_PERSON_2).zip
-ARCHIVE_PERSON_3 = ./exc$(EXERCISE)_$(USERNAME_PERSON_3).zip
+# Derived list of archive filenames:
+ARCHIVES = $(addprefix ./exc$(EXERCISE)_,$(addsuffix .zip,$(USERNAMES)))
 
-# Define all possible archives and select only the first $(PEOPLE) ones.
-ARCHIVES := $(ARCHIVE_PERSON_1) $(ARCHIVE_PERSON_2) $(ARCHIVE_PERSON_3)
-SUBARCHIVES := $(wordlist 1, $(PEOPLE), $(ARCHIVES))
+# --- PHONY TARGETS -----------------
 
-# --- TARGETS ---
+.PHONY: all prepare clean group format setperms zip
 
-.PHONY: all
+# all: run the full workflow
 all: prepare zip
 
-# prepare: execute clean, group, format, and setperms in order
-.PHONY: prepare
-prepare:
-	@for target in clean group format setperms; do \
-		echo "Executing $$target..."; \
-		$(MAKE) $$target; \
-	done
+# prepare: clean, generate group.txt (if needed), format code, set perms
+prepare: clean group format setperms
 
-#  cleans all task subdirectories and removes any existing group.txt file
-.PHONY: clean
+# clean: run each sub-task's clean, remove old group.txt
 clean:
 	@echo "Cleaning task folders in exercise$(EXERCISE)..."
 	@for dir in ./exercise$(EXERCISE)/task_*; do \
-		if [ -d "$$dir" ]; then \
-			-$(MAKE) -C "$$dir" clean || echo "Warning: no clean target in $$dir"; \
-		fi; \
+	  if [ -d "$$dir" ]; then \
+	    -$(MAKE) -C "$$dir" clean || echo "Warning: no clean target in $$dir"; \
+	  fi; \
 	done
 	@rm -f exercise$(EXERCISE)/group.txt
 
-# creates the group.txt file dynamically (only if PEOPLE > 1)
-# by looping over the number of people and appending the corresponding matriculation number and full name
-.PHONY: group
+# group: create group.txt if PEOPLE > 1, otherwise skip
 group:
-ifeq ($(strip $(PEOPLE)),1)
-	@echo "Single submission detected: group.txt will not be created."
-else
-	@echo "Creating group.txt in exercise$(EXERCISE)..."
-	@rm -f exercise$(EXERCISE)/group.txt
-	@for i in 1 2 3; do \
-	    if [ $$i -le $(PEOPLE) ]; then \
-	        case $$i in \
-	            1) echo "$(MAT_NUM_1) $(PERSON_1)" >> exercise$(EXERCISE)/group.txt ;; \
-	            2) echo "$(MAT_NUM_2) $(PERSON_2)" >> exercise$(EXERCISE)/group.txt ;; \
-	            3) echo "$(MAT_NUM_3) $(PERSON_3)" >> exercise$(EXERCISE)/group.txt ;; \
-	        esac; \
-	    fi; \
-	done
-endif
-
-# Uses clang-format to format all .c files
-# It first checks if clang-format is installed
-# if not, it skips formatting
-.PHONY: format
-format:
-	@echo "Formatting all .c files in exercise$(EXERCISE)..."
-	@if command -v clang-format >/dev/null 2>&1; then \
-		find exercise$(EXERCISE) -type f -name "*.c" -exec clang-format -i {} \; ; \
+	@if [ $(PEOPLE) -le 1 ]; then \
+	  echo "Single submission detected: skipping group.txt."; \
 	else \
-		echo "clang-format not found, skipping formatting."; \
+	  echo "Creating group.txt in exercise$(EXERCISE)..."; \
+	  rm -f exercise$(EXERCISE)/group.txt; \
+	  IDX=`seq 1 $(PEOPLE)`; \
+	  for i in $$IDX; do \
+	    mat=`echo "$(MAT_NUMS)"  | cut -d' ' -f $$i`; \
+	    raw=`echo "$(PERSONS)" | cut -d' ' -f $$i`; \
+	    name=`echo $$raw | tr '_' ' '`; \
+	    echo "$$mat $$name" >> exercise$(EXERCISE)/group.txt; \
+	  done; \
 	fi
 
-# Sets world-readable permissions on all files in the exercise folder
-.PHONY: setperms
+# format: apply clang-format to every .c file if clang-format is installed
+format:
+	@echo "Formatting .c files in exercise$(EXERCISE)..."
+	@if command -v clang-format >/dev/null 2>&1; then \
+	  find exercise$(EXERCISE) -type f -name "*.c" -exec clang-format -i {} \;; \
+	else \
+	  echo "clang-format not found, skipping formatting."; \
+	fi
+
+# setperms: make all files in the exercise world-readable
 setperms:
-	@echo "Setting world-read permissions for all files in exercise$(EXERCISE)..."
+	@echo "Setting world-readable permissions in exercise$(EXERCISE)..."
 	@find exercise$(EXERCISE) -type f -exec chmod a+r {} \;
-# chmod a+r
-# a... all users
-# +... add
-# r... read
 
-
-# Creates zip archives for submission.
-# Dynamically iterates over the first $(PEOPLE) archives from our list
-.PHONY: zip
+# zip: package into submission/*.zip for each person
 zip: prepare
 	@mkdir -p submission
-	$(RM) $(foreach a,$(ARCHIVES),./submission/$(a))
-	@echo "Creating zip archives for $(PEOPLE) people..."
-	$(foreach archive,$(SUBARCHIVES), (cd exercise$(EXERCISE) && zip -r ../submission/$(archive) . --exclude $(EXCLUDE_PATTERNS));)
-
-.PHONY: all clean group format setperms zip
+	@IDX=`seq 1 $(PEOPLE)`; \
+	for i in $$IDX; do \
+	  archive=`echo "$(ARCHIVES)" | cut -d' ' -f $$i`; \
+	  rm -f ./submission/$$archive; \
+	  (cd exercise$(EXERCISE) && zip -r ../submission/$$archive . --exclude $(EXCLUDE_PATTERNS)); \
+	done
