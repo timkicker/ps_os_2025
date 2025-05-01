@@ -17,7 +17,7 @@ PERSONS   = Max_Mustermann Gordon_Freeman Alyx_Vance
 MAT_NUMS  = 12345678 87654321 98765432
 
 # Exercise number / folder
-EXERCISE  = 04
+EXERCISE = 04
 
 # ---------------------------------------------------------------------------------------------------
 
